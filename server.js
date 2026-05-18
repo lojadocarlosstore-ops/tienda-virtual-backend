@@ -279,14 +279,32 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
     });
 
     const html = `
-      <div style="font-family: Arial;">
-        <h2>Nuevo Pedido</h2>
-        <p>Usuario ID: ${req.user.id}</p>
-        <p>Dirección: ${req.body.direccion}</p>
-        <p>Total: ${req.body.total}</p>
-        <p>Fecha: ${fechaLocal}</p>
-      </div>
-    `;
+  <div style="font-family: Arial; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+    
+    <h2 style="color:#2c3e50;">🛒 Nuevo Pedido - Loja do Carlos</h2>
+
+    <hr>
+
+    <p><strong>👤 Usuario ID:</strong> ${req.user.id}</p>
+    <p><strong>📍 Dirección:</strong> ${req.body.direccion}</p>
+    <p><strong>📅 Fecha:</strong> ${fechaLocal}</p>
+
+    <hr>
+
+    <h3>📦 Productos:</h3>
+
+    <ul>
+      ${req.body.productos.map(p => `
+        <li>${p.nombre} - $${p.precio} x ${p.cantidad || 1}</li>
+      `).join("")}
+    </ul>
+
+    <hr>
+
+    <h2 style="color: green;">💰 TOTAL: $${req.body.total}</h2>
+
+  </div>
+`;
 
     setImmediate(async () => {
       try {
