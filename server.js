@@ -36,8 +36,7 @@ const JWT_SECRET = "secreto_tienda";
    MONGODB
 ===================== */
 
-const MONGO_URL = "mongodb+srv://lojadocarlosstore_db_user:Mario12345*@cluster0.b1zhpmd.mongodb.net/tienda?retryWrites=true&w=majority";
-
+const MONGO_URL = "mongodb+srv://lojadocarlosstore_db_user:Mario123456@cluster0.b1zhpmd.mongodb.net/tienda?retryWrites=true&w=majority";
 mongoose.connect(MONGO_URL)
   .then(() => console.log("MongoDB conectado ✔️"))
   .catch(err => console.log("Error Mongo:", err.message));
