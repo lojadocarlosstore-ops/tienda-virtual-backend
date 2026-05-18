@@ -8,11 +8,11 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("./models/User");
 
-const app = express();
+const app = express(); // 
 
 app.use(cors());
 app.use(express.json());
-
+app.use(express.urlencoded({ extended: true }));
 // =====================
 // IMAGENES STATIC
 // =====================
@@ -257,34 +257,86 @@ app.delete("/productos/:id", async (req, res) => {
 
 });
 
-/* =====================
-   PEDIDOS (AHORA CON USUARIO)
-===================== */
-
 app.post("/pedidos", authMiddleware, async (req, res) => {
+  console.log("🧪 PRODUCTOS RECIBIDOS:", req.body.productos);
 
   try {
 
-    const pedido = new Pedido({
-      usuario: req.user.id,
-      productos: req.body.productos,
-      total: req.body.total,
-      direccion: req.body.direccion
-    });
+    // =====================
+    // NORMALIZAR PRODUCTOS (CLAVE)
+    // =====================
+    const productos = (req.body.productos || []).map(p => ({
+      nombre: p.nombre,
+      precio: Number(p.precio || 0),
+      cantidad: Number(p.cantidad || 1)
+    }));
 
-    await pedido.save();
+    // =====================
+    // TOTAL REAL
+    // =====================
+    const totalCalculado = productos.reduce((acc, p) => {
+      return acc + (p.precio * p.cantidad);
+    }, 0);
 
-    const fechaLocal = new Date().toLocaleString("es-CO", {
-      timeZone: "America/Bogota"
-    });
+    // =====================
+    // USUARIO
+    // =====================
+    const usuario = req.body.usuario || {};
 
+    const telefonoFinal = usuario.telefono || req.body.telefono || "No registrado";
+
+    // =====================
+    // GUARDAR EN BD
+    // =====================
+     const pedido = {
+  productos: carrito.map(p => ({
+    nombre: p.nombre,
+    precio: Number(p.precio),
+    cantidad: Number(p.cantidad || 1)
+  })),
+
+  total: carrito.reduce((acc, p) => acc + (p.precio * (p.cantidad || 1)), 0),
+
+  direccion: `${direccionInput}, Marsella Risaralda`,
+
+  usuario: {
+    nombre: user?.nombre || "Invitado",
+    email: user?.email || "No registrado",
+    telefono: telefono
+  },
+
+  fecha: new Date().toISOString()
+};
+
+    // =====================
+    // 🔥 PRODUCTOS BIEN FORMATEADOS (CON CANTIDAD REAL)
+    // =====================
+    const productosTexto = productos.map(p =>
+      `${p.nombre}
+$${p.precio} x ${p.cantidad}
+Subtotal: $${p.precio * p.cantidad}`
+    ).join("\n\n");
+
+    // =====================
+    // EMAIL FINAL
+    // =====================
     const html = `
       <div style="font-family: Arial;">
-        <h2>Nuevo Pedido</h2>
-        <p>Usuario ID: ${req.user.id}</p>
-        <p>Dirección: ${req.body.direccion}</p>
-        <p>Total: ${req.body.total}</p>
-        <p>Fecha: ${fechaLocal}</p>
+        <h2>🛒 Nuevo Pedido</h2>
+
+        <p><strong>Nombre cliente:</strong> ${usuario.nombre || "No registrado"}</p>
+        <p><strong>Teléfono:</strong> ${telefonoFinal}</p>
+
+        <hr>
+
+        <h3>Productos:</h3>
+        <pre>${productosTexto}</pre>
+
+        <hr>
+
+        <p><strong>Dirección:</strong> ${req.body.direccion}</p>
+        <p><strong>Total:</strong> $${totalCalculado}</p>
+        <p><strong>Fecha:</strong> ${fechaLocal}</p>
       </div>
     `;
 
@@ -304,11 +356,8 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
     res.json(pedido);
 
   } catch (err) {
-
     console.log("Error pedido:", err.message);
-
     res.status(500).json({ error: "Error pedido" });
-
   }
 
 });
