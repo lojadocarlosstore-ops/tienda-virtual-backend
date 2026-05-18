@@ -283,6 +283,7 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
     // =====================
     const usuario = req.body.usuario || {};
 
+<<<<<<< HEAD
     const telefonoFinal = usuario.telefono || req.body.telefono || "No registrado";
 
     // =====================
@@ -339,7 +340,69 @@ Subtotal: $${p.precio * p.cantidad}`
         <p><strong>Fecha:</strong> ${fechaLocal}</p>
       </div>
     `;
+=======
+   const html = `
+<div style="background:#f2f2f2; padding:40px 0; font-family:Arial;">
+>>>>>>> 3373c38f05c1fc12bcb9b448406f5c190ec37b0f
 
+  <div style="
+    max-width:520px;
+    margin:auto;
+    background:white;
+    border-radius:16px;
+    overflow:hidden;
+    box-shadow:0 10px 25px rgba(0,0,0,0.2);
+  ">
+
+    <!-- HEADER -->
+    <div style="
+      background:linear-gradient(135deg,#e11d48,#ff4d6d);
+      color:white;
+      padding:22px;
+      text-align:center;
+    ">
+      <h2 style="margin:0;">🛒 Nuevo Pedido</h2>
+    </div>
+
+    <!-- CONTENIDO -->
+    <div style="padding:22px;">
+
+      <h3 style="margin-bottom:10px;">Productos</h3>
+
+      <div style="border-top:1px solid #eee; padding-top:10px;">
+        ${req.body.productos.map(p => `
+          <div style="
+            display:flex;
+            justify-content:space-between;
+            padding:6px 0;
+            border-bottom:1px solid #f0f0f0;
+            font-size:14px;
+          ">
+            <span>${p.nombre}</span>
+            <strong>$${p.precio}</strong>
+          </div>
+        `).join("")}
+      </div>
+
+      <br>
+
+      <div style="margin-top:10px;">
+        <p><strong>📍 Dirección:</strong><br>${req.body.direccion}</p>
+        <p><strong>📅 Fecha:</strong><br>${fechaLocal}</p>
+      </div>
+
+      <hr>
+
+      <h2 style="color:#16a34a; text-align:center;">
+        💰 TOTAL: $${req.body.total}
+      </h2>
+
+    </div>
+
+  </div>
+
+</div>
+`;
     setImmediate(async () => {
       try {
         await resend.emails.send({
