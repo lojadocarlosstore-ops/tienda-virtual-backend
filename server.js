@@ -278,34 +278,60 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
       timeZone: "America/Bogota"
     });
 
-    const html = `
-<div style="font-family: Arial; background:#f4f4f4; padding:30px;">
+   const html = `
+<div style="background:#f2f2f2; padding:40px 0; font-family:Arial;">
 
-  <div style="max-width:500px; margin:auto; background:white; border-radius:12px; overflow:hidden; box-shadow:0 5px 15px rgba(0,0,0,0.2);">
+  <div style="
+    max-width:520px;
+    margin:auto;
+    background:white;
+    border-radius:16px;
+    overflow:hidden;
+    box-shadow:0 10px 25px rgba(0,0,0,0.2);
+  ">
 
-    <div style="background:#e11d48; color:white; padding:20px; text-align:center;">
+    <!-- HEADER -->
+    <div style="
+      background:linear-gradient(135deg,#e11d48,#ff4d6d);
+      color:white;
+      padding:22px;
+      text-align:center;
+    ">
       <h2 style="margin:0;">🛒 Nuevo Pedido</h2>
     </div>
 
-    <div style="padding:20px;">
+    <!-- CONTENIDO -->
+    <div style="padding:22px;">
 
-      <h3>Productos</h3>
+      <h3 style="margin-bottom:10px;">Productos</h3>
 
-      <ul style="padding-left:18px;">
+      <div style="border-top:1px solid #eee; padding-top:10px;">
         ${req.body.productos.map(p => `
-          <li style="margin-bottom:5px;">
-            ${p.nombre} $${p.precio}
-          </li>
+          <div style="
+            display:flex;
+            justify-content:space-between;
+            padding:6px 0;
+            border-bottom:1px solid #f0f0f0;
+            font-size:14px;
+          ">
+            <span>${p.nombre}</span>
+            <strong>$${p.precio}</strong>
+          </div>
         `).join("")}
-      </ul>
+      </div>
+
+      <br>
+
+      <div style="margin-top:10px;">
+        <p><strong>📍 Dirección:</strong><br>${req.body.direccion}</p>
+        <p><strong>📅 Fecha:</strong><br>${fechaLocal}</p>
+      </div>
 
       <hr>
 
-      <p><strong>📍 Dirección:</strong><br>${req.body.direccion}</p>
-
-      <p><strong>💰 Total:</strong> <span style="color:red; font-size:18px;">$${req.body.total}</span></p>
-
-      <p><strong>📅 Fecha:</strong><br>${fechaLocal}</p>
+      <h2 style="color:#16a34a; text-align:center;">
+        💰 TOTAL: $${req.body.total}
+      </h2>
 
     </div>
 
