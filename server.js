@@ -40,6 +40,9 @@ const MONGO_URL = "mongodb+srv://lojadocarlosstore_db_user:Mario123456@cluster0.
 mongoose.connect(MONGO_URL)
   .then(() => console.log("MongoDB conectado ✔️"))
   .catch(err => console.log("Error Mongo:", err.message));
+  mongoose.connection.on("connected", () => {
+  console.log("🔥 REAL MONGO:", mongoose.connection.host);
+});
 
 /* =====================
    MODELOS
