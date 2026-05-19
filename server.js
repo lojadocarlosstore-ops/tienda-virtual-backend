@@ -80,19 +80,6 @@ mongoose.connect(MONGO_URL)
 });
 
 /* =====================
-   MODELOS
-===================== */
-
-const Producto = mongoose.model("Producto", {
-  nombre: String,
-  precio: Number,
-  imagen: String,
-  categoria: String
-});
-
-const Pedido = require("./models/Pedido");
-
-/* =====================
    EMAIL
 ===================== */
 
