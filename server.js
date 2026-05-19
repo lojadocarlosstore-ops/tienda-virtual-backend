@@ -283,67 +283,61 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
     // =====================
     const usuario = req.body.usuario || {};
 
-<<<<<<< HEAD
-    const telefonoFinal = usuario.telefono || req.body.telefono || "No registrado";
+// =====================
+// TELÉFONO FINAL
+// =====================
+const telefonoFinal = usuario?.telefono || req.body.telefono || "No registrado";
 
-    // =====================
-    // GUARDAR EN BD
-    // =====================
-     const pedido = {
+// =====================
+// TOTAL DEL PEDIDO
+// =====================
+const totalCalculado = carrito.reduce(
+  (acc, p) => acc + (Number(p.precio) * (Number(p.cantidad) || 1)),
+  0
+);
+
+// =====================
+// PEDIDO (GUARDAR EN BD)
+// =====================
+const pedido = {
   productos: carrito.map(p => ({
     nombre: p.nombre,
     precio: Number(p.precio),
     cantidad: Number(p.cantidad || 1)
   })),
 
-  total: carrito.reduce((acc, p) => acc + (p.precio * (p.cantidad || 1)), 0),
+  total: totalCalculado,
 
-  direccion: `${direccionInput}, Marsella Risaralda`,
+  direccion: `${req.body.direccion || direccionInput}, Marsella Risaralda`,
 
   usuario: {
     nombre: user?.nombre || "Invitado",
     email: user?.email || "No registrado",
-    telefono: telefono
+    telefono: telefonoFinal
   },
 
   fecha: new Date().toISOString()
 };
 
-    // =====================
-    // 🔥 PRODUCTOS BIEN FORMATEADOS (CON CANTIDAD REAL)
-    // =====================
-    const productosTexto = productos.map(p =>
-      `${p.nombre}
-$${p.precio} x ${p.cantidad}
-Subtotal: $${p.precio * p.cantidad}`
-    ).join("\n\n");
+// =====================
+// TEXTO DE PRODUCTOS (EMAIL SIMPLE)
+// =====================
+const productosTexto = carrito.map(p =>
+  `${p.nombre}
+$${p.precio} x ${p.cantidad || 1}
+Subtotal: $${p.precio * (p.cantidad || 1)}`
+).join("\n\n");
 
-    // =====================
-    // EMAIL FINAL
-    // =====================
-    const html = `
-      <div style="font-family: Arial;">
-        <h2>🛒 Nuevo Pedido</h2>
+// =====================
+// FECHA LOCAL
+// =====================
+const fechaLocal = new Date().toLocaleString();
 
-        <p><strong>Nombre cliente:</strong> ${usuario.nombre || "No registrado"}</p>
-        <p><strong>Teléfono:</strong> ${telefonoFinal}</p>
-
-        <hr>
-
-        <h3>Productos:</h3>
-        <pre>${productosTexto}</pre>
-
-        <hr>
-
-        <p><strong>Dirección:</strong> ${req.body.direccion}</p>
-        <p><strong>Total:</strong> $${totalCalculado}</p>
-        <p><strong>Fecha:</strong> ${fechaLocal}</p>
-      </div>
-    `;
-=======
-   const html = `
+// =====================
+// EMAIL HTML (DISEÑO LIMPIO)
+// =====================
+const html = `
 <div style="background:#f2f2f2; padding:40px 0; font-family:Arial;">
->>>>>>> 3373c38f05c1fc12bcb9b448406f5c190ec37b0f
 
   <div style="
     max-width:520px;
@@ -367,10 +361,10 @@ Subtotal: $${p.precio * p.cantidad}`
     <!-- CONTENIDO -->
     <div style="padding:22px;">
 
-      <h3 style="margin-bottom:10px;">Productos</h3>
+      <h3>Productos</h3>
 
       <div style="border-top:1px solid #eee; padding-top:10px;">
-        ${req.body.productos.map(p => `
+        ${carrito.map(p => `
           <div style="
             display:flex;
             justify-content:space-between;
@@ -378,23 +372,22 @@ Subtotal: $${p.precio * p.cantidad}`
             border-bottom:1px solid #f0f0f0;
             font-size:14px;
           ">
-            <span>${p.nombre}</span>
-            <strong>$${p.precio}</strong>
+            <span>${p.nombre} x${p.cantidad || 1}</span>
+            <strong>$${p.precio * (p.cantidad || 1)}</strong>
           </div>
         `).join("")}
       </div>
 
       <br>
 
-      <div style="margin-top:10px;">
-        <p><strong>📍 Dirección:</strong><br>${req.body.direccion}</p>
-        <p><strong>📅 Fecha:</strong><br>${fechaLocal}</p>
-      </div>
+      <p><strong>📍 Dirección:</strong><br>${req.body.direccion || direccionInput}</p>
+      <p><strong>📞 Teléfono:</strong><br>${telefonoFinal}</p>
+      <p><strong>📅 Fecha:</strong><br>${fechaLocal}</p>
 
       <hr>
 
       <h2 style="color:#16a34a; text-align:center;">
-        💰 TOTAL: $${req.body.total}
+        💰 TOTAL: $${totalCalculado}
       </h2>
 
     </div>
