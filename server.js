@@ -8,11 +8,16 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("./models/User");
 
-const app = express(); // 
+const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
 // =====================
 // IMAGENES STATIC
 // =====================
@@ -78,31 +83,46 @@ const resend = new Resend("re_Qc8VBNSb_NPFvmMVnPrZhzzMsKf48gFHv");
 /* =====================
    ADMIN LOGIN
 ===================== */
-app.post("/admin/login", (req, res) => {
 
-  const user = req.body.user || req.body.email;
-  const pass = req.body.pass || req.body.password;
+app.post("/login", async (req, res) => {
 
-  console.log("ADMIN LOGIN RECIBIDO:", req.body);
+  console.log("BODY LOGIN:", req.body); // 👈 AQUÍ
 
-  if (!user || !pass) {
-    return res.status(400).json({
-      ok: false,
-      message: "Faltan datos"
+  try {
+
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({ message: "Usuario no encontrado" });
+    }
+
+    const ok = await bcrypt.compare(password, user.password);
+
+    if (!ok) {
+      return res.status(400).json({ message: "Contraseña incorrecta" });
+    }
+
+    const token = jwt.sign(
+      { id: user._id, nombre: user.nombre },
+      JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        nombre: user.nombre,
+        email: user.email
+      }
     });
+
+  } catch (error) {
+    res.status(500).json({ message: "Error en login" });
   }
 
-  if (user === ADMIN_USER && pass === ADMIN_PASS) {
-    return res.json({
-      ok: true,
-      token: ADMIN_TOKEN
-    });
-  }
-
-  return res.status(401).json({
-    ok: false,
-    message: "Credenciales incorrectas"
-  });
 });
 
 /* =====================
@@ -173,33 +193,41 @@ app.post("/register", async (req, res) => {
 
 app.post("/login", async (req, res) => {
 
-  const { email, password } = req.body;
+  try {
 
-  console.log("EMAIL:", email);
+    const { email, password } = req.body;
 
-  const emailFixed = email.trim().toLowerCase();
+    const user = await User.findOne({ email });
 
-  const user = await User.findOne({ email: emailFixed });
+    if (!user) {
+      return res.status(400).json({ message: "Usuario no encontrado" });
+    }
 
-  console.log("USER ENCONTRADO:", user);
+    const ok = await bcrypt.compare(password, user.password);
 
-  if (!user) {
-    return res.status(400).json({ message: "Usuario no encontrado" });
+    if (!ok) {
+      return res.status(400).json({ message: "Contraseña incorrecta" });
+    }
+
+    const token = jwt.sign(
+      { id: user._id, nombre: user.nombre },
+      JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        nombre: user.nombre,
+        email: user.email
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: "Error en login" });
   }
 
-  // ⚠️ TEMPORAL PARA QUE TE FUNCIONE EL VIDEO
-  const match = true; // ignoramos password por ahora
-
-  if (!match) {
-    return res.status(400).json({ message: "Password incorrecta" });
-  }
-
-  const token = "ok-token-demo";
-
-  res.json({
-    token,
-    user
-  });
 });
 
 /* =====================
@@ -260,76 +288,37 @@ app.delete("/productos/:id", async (req, res) => {
 
 });
 
+/* =====================
+   PEDIDOS (AHORA CON USUARIO)
+===================== */
+
 app.post("/pedidos", authMiddleware, async (req, res) => {
-  console.log("🧪 PRODUCTOS RECIBIDOS:", req.body.productos);
 
   try {
-    // =====================
-    // DATOS RECIBIDOS
-    // =====================
-    const { user, productos = [], direccion, total } = req.body;
 
-    // =====================
-    // NORMALIZAR PRODUCTOS
-    // =====================
-    const productosFormateados = productos.map(p => ({
-      nombre: p.nombre,
-      precio: Number(p.precio || 0),
-      cantidad: Number(p.cantidad || 1)
-    }));
+    const pedido = new Pedido({
+      usuario: req.user.id,
+      productos: req.body.productos,
+      total: req.body.total,
+      direccion: req.body.direccion
+    });
 
-    // =====================
-    // USUARIO
-    // =====================
-    const nombre = user?.nombre || "Invitado";
-    const telefono = user?.telefono || "No registrado";
+    await pedido.save();
 
-    // =====================
-    // FECHA
-    // =====================
-    const fechaLocal = new Date().toLocaleString();
+    const fechaLocal = new Date().toLocaleString("es-CO", {
+      timeZone: "America/Bogota"
+    });
 
-    // =====================
-    // HTML EMAIL
-    // =====================
     const html = `
-    <div style="background:#f2f2f2;padding:40px;font-family:Arial">
-      <div style="max-width:520px;margin:auto;background:white;border-radius:16px;overflow:hidden;">
-
-        <div style="background:#e11d48;color:white;padding:20px;text-align:center">
-          <h2>🛒 Nuevo Pedido</h2>
-        </div>
-
-        <div style="padding:20px">
-
-          <p><strong>👤 Nombre:</strong> ${nombre}</p>
-          <p><strong>📞 Teléfono:</strong> ${telefono}</p>
-
-          <hr>
-
-          <h3>Productos</h3>
-
-          ${productosFormateados.map(p => `
-            <p>${p.nombre} x${p.cantidad} - $${p.precio * p.cantidad}</p>
-          `).join("")}
-
-          <hr>
-
-          <p><strong>📍 Dirección:</strong> ${direccion}</p>
-          <p><strong>📅 Fecha:</strong> ${fechaLocal}</p>
-
-          <h2 style="color:green;text-align:center">
-            💰 TOTAL: $${total}
-          </h2>
-
-        </div>
+      <div style="font-family: Arial;">
+        <h2>Nuevo Pedido</h2>
+        <p>Usuario ID: ${req.user.id}</p>
+        <p>Dirección: ${req.body.direccion}</p>
+        <p>Total: ${req.body.total}</p>
+        <p>Fecha: ${fechaLocal}</p>
       </div>
-    </div>
     `;
 
-    // =====================
-    // ENVIAR EMAIL
-    // =====================
     setImmediate(async () => {
       try {
         await resend.emails.send({
@@ -343,17 +332,18 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
       }
     });
 
-    res.json({
-      ok: true,
-      mensaje: "Pedido recibido",
-      total
-    });
+    res.json(pedido);
 
   } catch (err) {
+
     console.log("Error pedido:", err.message);
+
     res.status(500).json({ error: "Error pedido" });
+
   }
+
 });
+
 /* =====================
    ADMIN PEDIDOS
 ===================== */
