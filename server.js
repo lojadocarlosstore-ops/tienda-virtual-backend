@@ -15,6 +15,21 @@ const Pedido = require("./models/Pedido");
 
 const app = express();
 
+
+// =====================
+// MODELO PRODUCTO
+// =====================
+const ProductoSchema = new mongoose.Schema({
+  nombre: String,
+  precio: Number,
+  imagen: String,
+  categoria: String
+}, { versionKey: false });
+
+const Producto =
+  mongoose.models.Producto ||
+  mongoose.model("Producto", ProductoSchema, "productos");
+
 // =====================
 // MIDDLEWARES
 // =====================
@@ -71,14 +86,13 @@ const JWT_SECRET = "secreto_tienda";
    MONGODB
 ===================== */
 
-const MONGO_URL = "mongodb+srv://lojadocarlosstore_db_user:Mario123456@cluster0.b1zhpmd.mongodb.net/aplicacion-web?retryWrites=true&w=majority&appName=Cluster0";
-mongoose.connect(MONGO_URL)
-  .then(() => console.log("MongoDB conectado ✔️"))
-  .catch(err => console.log("Error Mongo:", err.message));
-  mongoose.connection.on("connected", () => {
-  console.log("🔥 REAL MONGO:", mongoose.connection.host);
-});
-
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => {
+    console.log("MongoDB conectado ✔️");
+  })
+  .catch(err => {
+    console.log("ERROR MONGO:", err.message);
+  });
 /* =====================
    EMAIL
 ===================== */
@@ -240,61 +254,16 @@ app.post("/login", async (req, res) => {
 /* =====================
    PRODUCTOS
 ===================== */
-
 app.get("/productos", async (req, res) => {
-
   try {
-
-    const data = await Producto.find();
-
-    console.log("PRODUCTOS:", data.length);
-
+    const data = await Producto.find({}).lean();
+    console.log("PRODUCTOS OK:", data);
     res.json(data);
-
   } catch (err) {
-
-    console.log("ERROR PRODUCTOS:", err.message);
-
-    res.status(500).json({ error: "Error productos" });
-
+    console.log("ERROR REAL:", err);
+    res.status(500).json({ error: err.message });
   }
-
 });
-
-app.post("/productos", async (req, res) => {
-
-  try {
-
-    const nuevo = new Producto(req.body);
-
-    await nuevo.save();
-
-    res.json(nuevo);
-
-  } catch (err) {
-
-    res.status(500).json({ error: "Error creando producto" });
-
-  }
-
-});
-
-app.delete("/productos/:id", async (req, res) => {
-
-  try {
-
-    await Producto.findByIdAndDelete(req.params.id);
-
-    res.json({ ok: true });
-
-  } catch (err) {
-
-    res.status(500).json({ error: "Error eliminando producto" });
-
-  }
-
-});
-
 app.post("/pedidos", authMiddleware, async (req, res) => {
 
   try {
@@ -360,32 +329,6 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
     console.log("Error pedido:", err.message);
     res.status(500).json({ error: "Error pedido" });
   }
-});
-
-/* =====================
-   ADMIN PEDIDOS
-===================== */
-
-app.get("/admin/pedidos", async (req, res) => {
-
-  try {
-
-    const token = req.headers.authorization;
-
-    if (token !== ADMIN_TOKEN) {
-      return res.status(401).json({ error: "No autorizado" });
-    }
-
-    const pedidos = await Pedido.find().sort({ fecha: -1 });
-
-    res.json(pedidos);
-
-  } catch (err) {
-
-    res.status(500).json({ error: "Error servidor" });
-
-  }
-
 });
 
 app.put("/admin/pedidos/:id/estado", async (req, res) => {
