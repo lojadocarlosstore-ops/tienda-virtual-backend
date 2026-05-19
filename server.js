@@ -1,3 +1,4 @@
+console.log("🔥 SERVER VERSION NUEVA CON ADMIN LOGIN");
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -30,6 +31,28 @@ app.use("/img", express.static(path.join(__dirname, "public", "img")));
 const ADMIN_USER = "admin";
 const ADMIN_PASS = "1234";
 const ADMIN_TOKEN = "admin-token";
+
+console.log("ADMIN ROUTE CARGADA");
+app.post("/admin/login", (req, res) => {
+
+  const { user, pass } = req.body;
+
+  if (!user || !pass) {
+    return res.status(400).json({ ok: false, message: "Faltan datos" });
+  }
+
+  if (user === ADMIN_USER && pass === ADMIN_PASS) {
+    return res.json({
+      ok: true,
+      token: ADMIN_TOKEN
+    });
+  }
+
+  return res.status(401).json({
+    ok: false,
+    message: "Credenciales incorrectas"
+  });
+});
 
 /* =====================
    JWT SECRET
