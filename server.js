@@ -1,4 +1,5 @@
 console.log("🔥 SERVER VERSION NUEVA CON ADMIN LOGIN");
+
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -7,10 +8,16 @@ const path = require("path");
 
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+
+// 👇 MODELOS
 const User = require("./models/User");
+const Pedido = require("./models/Pedido"); 
 
 const app = express();
 
+// =====================
+// MIDDLEWARES
+// =====================
 app.use(cors({
   origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE"],
@@ -83,17 +90,7 @@ const Producto = mongoose.model("Producto", {
   categoria: String
 });
 
-const Pedido = mongoose.model("Pedido", {
-  usuario: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
-  },
-  productos: Array,
-  total: Number,
-  direccion: String,
-  estado: { type: String, default: "pendiente" },
-  fecha: { type: Date, default: Date.now }
-});
+const Pedido = require("./models/Pedido");
 
 /* =====================
    EMAIL
@@ -311,19 +308,18 @@ app.delete("/productos/:id", async (req, res) => {
 
 });
 
-/* =====================
-   PEDIDOS (AHORA CON USUARIO)
-===================== */
-
 app.post("/pedidos", authMiddleware, async (req, res) => {
 
   try {
 
+    const { productos, total, direccion, telefono, usuario } = req.body;
+
     const pedido = new Pedido({
       usuario: req.user.id,
-      productos: req.body.productos,
-      total: req.body.total,
-      direccion: req.body.direccion
+      productos,
+      total,
+      direccion,
+      estado: "pendiente"
     });
 
     await pedido.save();
@@ -332,13 +328,29 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
       timeZone: "America/Bogota"
     });
 
+    // 🔥 FORMATEAR PRODUCTOS BONITO
+    const productosHTML = productos
+      .map(p => `🛒 ${p.nombre} x${p.cantidad || 1} - $${p.precio * (p.cantidad || 1)}`)
+      .join("<br>");
+
     const html = `
       <div style="font-family: Arial;">
-        <h2>Nuevo Pedido</h2>
-        <p>Usuario ID: ${req.user.id}</p>
-        <p>Dirección: ${req.body.direccion}</p>
-        <p>Total: ${req.body.total}</p>
-        <p>Fecha: ${fechaLocal}</p>
+        <h2>🛒 Nuevo Pedido</h2>
+
+        <p><b>👤 Nombre:</b> ${usuario?.nombre || "No registrado"}</p>
+
+        <p><b>📞 Teléfono:</b> ${telefono || "No registrado"}</p>
+
+        <hr>
+
+        <p><b>Productos:</b></p>
+        <p>${productosHTML}</p>
+
+        <hr>
+
+        <p><b>📍 Dirección:</b> ${direccion}</p>
+        <p><b>📅 Fecha:</b> ${fechaLocal}</p>
+        <p><b>💰 TOTAL:</b> $${total}</p>
       </div>
     `;
 
@@ -358,13 +370,9 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
     res.json(pedido);
 
   } catch (err) {
-
     console.log("Error pedido:", err.message);
-
     res.status(500).json({ error: "Error pedido" });
-
   }
-
 });
 
 /* =====================
@@ -391,6 +399,39 @@ app.get("/admin/pedidos", async (req, res) => {
 
   }
 
+});
+
+app.put("/admin/pedidos/:id/estado", async (req, res) => {
+
+  try {
+  
+    console.log("BODY:", req.body);
+    console.log("ID:", req.params.id);
+
+
+    const { id } = req.params;
+    const { estado } = req.body;
+
+    const pedido = await Pedido.findById(id);
+
+    if (!pedido) {
+      return res.status(404).json({ message: "Pedido no encontrado" });
+    }
+
+    pedido.estado = estado;
+
+    await pedido.save();
+
+    res.json({
+      ok: true,
+      message: "Estado actualizado",
+      pedido
+    });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Error servidor" });
+  }
 });
 
 /* =====================
