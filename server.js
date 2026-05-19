@@ -261,141 +261,72 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
   console.log("🧪 PRODUCTOS RECIBIDOS:", req.body.productos);
 
   try {
+    // =====================
+    // DATOS RECIBIDOS
+    // =====================
+    const { user, productos = [], direccion, total } = req.body;
 
     // =====================
-    // NORMALIZAR PRODUCTOS (CLAVE)
+    // NORMALIZAR PRODUCTOS
     // =====================
-    const productos = (req.body.productos || []).map(p => ({
+    const productosFormateados = productos.map(p => ({
       nombre: p.nombre,
       precio: Number(p.precio || 0),
       cantidad: Number(p.cantidad || 1)
     }));
 
     // =====================
-    // TOTAL REAL
-    // =====================
-    const totalCalculado = productos.reduce((acc, p) => {
-      return acc + (p.precio * p.cantidad);
-    }, 0);
-
-    // =====================
     // USUARIO
     // =====================
-    const usuario = req.body.usuario || {};
+    const nombre = user?.nombre || "Invitado";
+    const telefono = user?.telefono || "No registrado";
 
-// =====================
-// TELÉFONO FINAL
-// =====================
-const telefonoFinal = usuario?.telefono || req.body.telefono || "No registrado";
+    // =====================
+    // FECHA
+    // =====================
+    const fechaLocal = new Date().toLocaleString();
 
-// =====================
-// TOTAL DEL PEDIDO
-// =====================
-const totalCalculado = carrito.reduce(
-  (acc, p) => acc + (Number(p.precio) * (Number(p.cantidad) || 1)),
-  0
-);
+    // =====================
+    // HTML EMAIL
+    // =====================
+    const html = `
+    <div style="background:#f2f2f2;padding:40px;font-family:Arial">
+      <div style="max-width:520px;margin:auto;background:white;border-radius:16px;overflow:hidden;">
 
-// =====================
-// PEDIDO (GUARDAR EN BD)
-// =====================
-const pedido = {
-  productos: carrito.map(p => ({
-    nombre: p.nombre,
-    precio: Number(p.precio),
-    cantidad: Number(p.cantidad || 1)
-  })),
+        <div style="background:#e11d48;color:white;padding:20px;text-align:center">
+          <h2>🛒 Nuevo Pedido</h2>
+        </div>
 
-  total: totalCalculado,
+        <div style="padding:20px">
 
-  direccion: `${req.body.direccion || direccionInput}, Marsella Risaralda`,
+          <p><strong>👤 Nombre:</strong> ${nombre}</p>
+          <p><strong>📞 Teléfono:</strong> ${telefono}</p>
 
-  usuario: {
-    nombre: user?.nombre || "Invitado",
-    email: user?.email || "No registrado",
-    telefono: telefonoFinal
-  },
+          <hr>
 
-  fecha: new Date().toISOString()
-};
+          <h3>Productos</h3>
 
-// =====================
-// TEXTO DE PRODUCTOS (EMAIL SIMPLE)
-// =====================
-const productosTexto = carrito.map(p =>
-  `${p.nombre}
-$${p.precio} x ${p.cantidad || 1}
-Subtotal: $${p.precio * (p.cantidad || 1)}`
-).join("\n\n");
+          ${productosFormateados.map(p => `
+            <p>${p.nombre} x${p.cantidad} - $${p.precio * p.cantidad}</p>
+          `).join("")}
 
-// =====================
-// FECHA LOCAL
-// =====================
-const fechaLocal = new Date().toLocaleString();
+          <hr>
 
-// =====================
-// EMAIL HTML (DISEÑO LIMPIO)
-// =====================
-const html = `
-<div style="background:#f2f2f2; padding:40px 0; font-family:Arial;">
+          <p><strong>📍 Dirección:</strong> ${direccion}</p>
+          <p><strong>📅 Fecha:</strong> ${fechaLocal}</p>
 
-  <div style="
-    max-width:520px;
-    margin:auto;
-    background:white;
-    border-radius:16px;
-    overflow:hidden;
-    box-shadow:0 10px 25px rgba(0,0,0,0.2);
-  ">
+          <h2 style="color:green;text-align:center">
+            💰 TOTAL: $${total}
+          </h2>
 
-    <!-- HEADER -->
-    <div style="
-      background:linear-gradient(135deg,#e11d48,#ff4d6d);
-      color:white;
-      padding:22px;
-      text-align:center;
-    ">
-      <h2 style="margin:0;">🛒 Nuevo Pedido</h2>
-    </div>
-
-    <!-- CONTENIDO -->
-    <div style="padding:22px;">
-
-      <h3>Productos</h3>
-
-      <div style="border-top:1px solid #eee; padding-top:10px;">
-        ${carrito.map(p => `
-          <div style="
-            display:flex;
-            justify-content:space-between;
-            padding:6px 0;
-            border-bottom:1px solid #f0f0f0;
-            font-size:14px;
-          ">
-            <span>${p.nombre} x${p.cantidad || 1}</span>
-            <strong>$${p.precio * (p.cantidad || 1)}</strong>
-          </div>
-        `).join("")}
+        </div>
       </div>
-
-      <br>
-
-      <p><strong>📍 Dirección:</strong><br>${req.body.direccion || direccionInput}</p>
-      <p><strong>📞 Teléfono:</strong><br>${telefonoFinal}</p>
-      <p><strong>📅 Fecha:</strong><br>${fechaLocal}</p>
-
-      <hr>
-
-      <h2 style="color:#16a34a; text-align:center;">
-        💰 TOTAL: $${totalCalculado}
-      </h2>
-
     </div>
+    `;
 
-  </div>
-
-</div>
-`;
+    // =====================
+    // ENVIAR EMAIL
+    // =====================
     setImmediate(async () => {
       try {
         await resend.emails.send({
@@ -409,15 +340,17 @@ const html = `
       }
     });
 
-    res.json(pedido);
+    res.json({
+      ok: true,
+      mensaje: "Pedido recibido",
+      total
+    });
 
   } catch (err) {
     console.log("Error pedido:", err.message);
     res.status(500).json({ error: "Error pedido" });
   }
-
 });
-
 /* =====================
    ADMIN PEDIDOS
 ===================== */
