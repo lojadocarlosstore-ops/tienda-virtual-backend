@@ -272,15 +272,21 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
     const { productos, total, telefono, usuario } = req.body;
     let direccion = req.body.direccion;
 
-    const { productos, total, direccion, telefono, usuario } = req.body;
+    const direccionInput = document.getElementById("direccion")?.value;
 
-const pedido = new Pedido({
-  usuario: req.user.id,
-  productos,
-  total,
-  direccion: direccion || "Sin dirección",
-  estado: "pendiente"
-});
+const pedido = {
+  productos: productosPedido,
+  total: totalPedido,
+  direccion: (direccionInput && direccionInput.trim())
+    ? `${direccionInput.trim()}, Marsella Risaralda`
+    : "Sin dirección",
+  fecha: new Date().toISOString(),
+  usuario: user ? {
+    nombre: user.nombre,
+    email: user.email
+  } : null,
+  telefono
+};
 
     await pedido.save();
 
