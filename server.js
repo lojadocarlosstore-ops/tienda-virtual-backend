@@ -1,4 +1,4 @@
-console.log("🔥 SERVER VERSION NUEVA CON ADMIN LOGIN");
+console.log("SERVER VERSION NUEVA CON ADMIN LOGIN");
 
 const express = require("express");
 const cors = require("cors");
@@ -351,7 +351,26 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
 </div>
 `;
 
-    
+try {
+
+  console.log("📧 ENVIANDO EMAIL...");
+
+  const response = await resend.emails.send({
+    from: "onboarding@resend.dev",
+    to: "lojadocarlos.store@gmail.com",
+    subject: "Nuevo pedido Loja do Carlos",
+    html: html
+  });
+
+  console.log("✅ RESPUESTA RESEND:");
+  console.log(response);
+
+} catch (emailError) {
+
+  console.log("❌ ERROR RESEND:");
+  console.log(emailError);
+
+}
 
     res.json(pedido);
 
