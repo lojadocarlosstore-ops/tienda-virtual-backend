@@ -9,6 +9,7 @@ const path = require("path");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+const JWT_SECRET = "secreto_tienda";
 // 👇 MODELOS
 const User = require("./models/User");
 const Pedido = require("./models/Pedido"); 
@@ -54,27 +55,44 @@ const ADMIN_USER = "admin";
 const ADMIN_PASS = "1234";
 
 console.log("ADMIN ROUTE CARGADA");
+
 app.post("/admin/login", (req, res) => {
 
-  const { user, pass } = req.body;
+  try {
 
-  if (!user || !pass) {
-    return res.status(400).json({ ok: false, message: "Faltan datos" });
-  }
+    const { user, pass } = req.body;
 
-  if (user === ADMIN_USER && pass === ADMIN_PASS) {
-    return res.json({
-      ok: true,
-      token: ADMIN_TOKEN
+    if (user === "admin" && pass === "1234") {
+
+      const token = jwt.sign(
+        { role: "admin" },
+        JWT_SECRET,
+        { expiresIn: "1d" }
+      );
+
+      return res.json({
+        ok: true,
+        token
+      });
+    }
+
+    return res.status(401).json({
+      ok: false,
+      message: "Credenciales incorrectas"
     });
+
+  } catch (error) {
+
+    console.log("ERROR LOGIN ADMIN:", error);
+
+    return res.status(500).json({
+      ok: false,
+      message: "Error servidor login"
+    });
+
   }
 
-  return res.status(401).json({
-    ok: false,
-    message: "Credenciales incorrectas"
-  });
 });
-
 /* =====================
    JWT SECRET
 ===================== */
