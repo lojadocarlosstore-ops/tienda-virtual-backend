@@ -363,7 +363,25 @@ app.put("/admin/pedidos/:id/estado", async (req, res) => {
     res.status(500).json({ message: "Error servidor" });
   }
 });
+app.get("/admin/pedidos", async (req, res) => {
 
+  try {
+
+    const token = req.headers.authorization;
+
+    if (token !== "admin-token") {
+      return res.status(401).json({ error: "No autorizado" });
+    }
+
+    const pedidos = await Pedido.find().sort({ createdAt: -1 });
+
+    res.json(pedidos);
+
+  } catch (err) {
+    console.log("ERROR ADMIN PEDIDOS:", err);
+    res.status(500).json({ error: "Error servidor" });
+  }
+});
 /* =====================
    SERVER
 ===================== */
