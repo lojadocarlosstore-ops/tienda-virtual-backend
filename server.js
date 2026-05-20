@@ -1,5 +1,5 @@
 console.log("SERVER VERSION NUEVA CON ADMIN LOGIN");
-
+console.log("🔥 BACKEND NUEVO CORRIENDO");
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -266,6 +266,7 @@ app.post("/login", async (req, res) => {
 /* =====================
    PRODUCTOS
 ===================== */
+console.log("🔥 RUTA /admin/pedidos ACTIVA");
 app.get("/productos", async (req, res) => {
 
   try {
