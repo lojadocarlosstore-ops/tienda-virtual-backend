@@ -264,19 +264,26 @@ app.get("/productos", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 app.post("/pedidos", authMiddleware, async (req, res) => {
 
   try {
 
-    const { productos, total, direccion, telefono, usuario } = req.body;
+    const { productos, total, telefono, usuario } = req.body;
+    let direccion = req.body.direccion;
+
+    // 🔥 FIX REAL: evitar undefined o vacío
+    if (!direccion || direccion.trim() === "") {
+      direccion = "Sin dirección";
+    }
 
     const pedido = new Pedido({
-  usuario: req.user.id,
-  productos,
-  total,
-  direccion: direccion || "Sin dirección",
-  estado: "pendiente"
-});
+      usuario: req.user.id,
+      productos,
+      total,
+      direccion,
+      estado: "pendiente"
+    });
 
     await pedido.save();
 
@@ -305,15 +312,15 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
   ">
 
     <h2 style="
-  text-align: center;
-  background: #e11d48;
-  color: white;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-">
-  🛒 Nuevo Pedido
-</h2>
+      text-align: center;
+      background: #e11d48;
+      color: white;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    ">
+      🛒 Nuevo Pedido
+    </h2>
 
     <p><b>👤 Nombre:</b> ${usuario?.nombre || "No registrado"}</p>
 
@@ -321,7 +328,7 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
 
     <hr style="margin: 15px 0;">
 
-    <p style="color:#1f2937;"><b>Productos:</b></p>
+    <p><b>Productos:</b></p>
 
     <div style="margin-left:10px; margin-bottom:10px;">
       ${productosHTML}
@@ -343,6 +350,7 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
   </div>
 </div>
 `;
+
     setImmediate(async () => {
       try {
         await resend.emails.send({
