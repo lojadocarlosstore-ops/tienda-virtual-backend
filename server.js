@@ -367,25 +367,34 @@ app.get("/admin/pedidos", async (req, res) => {
 
   try {
 
+    console.log("HEADERS:", req.headers.authorization);
+
     const header = req.headers.authorization;
 
     if (!header) {
-      return res.status(401).json({ error: "No autorizado" });
+      return res.status(401).json({ error: "No autorizado (sin header)" });
     }
 
-    const token = header.split(" ")[1]; // 👈 QUITA "Bearer"
+    let token = header;
+
+    // 🔥 soporta "Bearer token" o solo token
+    if (header.startsWith("Bearer ")) {
+      token = header.replace("Bearer ", "");
+    }
+
+    console.log("TOKEN FINAL:", token);
 
     if (token !== "admin-token") {
-      return res.status(401).json({ error: "No autorizado" });
+      return res.status(401).json({ error: "No autorizado (token incorrecto)" });
     }
 
     const pedidos = await Pedido.find().sort({ _id: -1 });
 
-    res.json(pedidos);
+    return res.json(pedidos);
 
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: "Error servidor" });
+    console.log("ERROR ADMIN PEDIDOS:", err);
+    return res.status(500).json({ error: "Error servidor" });
   }
 });
 /* =====================
