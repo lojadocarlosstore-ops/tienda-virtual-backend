@@ -222,49 +222,6 @@ app.post("/register", async (req, res) => {
 });
 
 /* =====================
-   LOGIN USER
-===================== */
-
-app.post("/login", async (req, res) => {
-
-  try {
-
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(400).json({ message: "Usuario no encontrado" });
-    }
-
-    const ok = await bcrypt.compare(password, user.password);
-
-    if (!ok) {
-      return res.status(400).json({ message: "Contraseña incorrecta" });
-    }
-
-    const token = jwt.sign(
-      { id: user._id, nombre: user.nombre },
-      JWT_SECRET,
-      { expiresIn: "1d" }
-    );
-
-    res.json({
-      token,
-      user: {
-        id: user._id,
-        nombre: user.nombre,
-        email: user.email
-      }
-    });
-
-  } catch (error) {
-    res.status(500).json({ message: "Error en login" });
-  }
-
-});
-
-/* =====================
    PRODUCTOS
 ===================== */
 
@@ -315,6 +272,7 @@ app.get("/admin/pedidos", authMiddleware, async (req, res) => {
   }
 
 });
+
 app.post("/pedidos", authMiddleware, async (req, res) => {
 
   try {
@@ -429,43 +387,31 @@ try {
   }
 });
 
-app.put("/admin/pedidos/:id/estado", authMiddleware, async (req, res) => {
-  try {
+app.put("/admin/pedidos/:id", authMiddleware, async (req, res) => {
 
-    console.log("🔥 ENTRÓ AL ENDPOINT");
-    console.log("🔥 BODY:", req.body);
-    console.log("🔥 ID:", req.params.id);
+  try {
 
     const { estado } = req.body;
 
-    if (!estado) {
-      return res.status(400).json({ message: "Estado vacío" });
-    }
+    const pedidoActualizado = await Pedido.findByIdAndUpdate(
+      req.params.id,
+      { estado },
+      { new: true }
+    );
 
-    const pedido = await Pedido.findById(req.params.id); // 🔥 AQUÍ EL FIX
-
-    if (!pedido) {
+    if (!pedidoActualizado) {
       return res.status(404).json({ message: "Pedido no encontrado" });
     }
 
-    const { estado: nuevoEstado } = req.body;
-
-    pedido.estado = nuevoEstado;
-
-    const actualizado = await pedido.save();
-
-    console.log("🔥 NUEVO ESTADO GUARDADO:", actualizado.estado);
-
-    return res.json({
-      ok: true,
-      message: "Estado actualizado",
-      pedido: actualizado
-    });
+    res.json(pedidoActualizado);
 
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "Error servidor" });
+
+    console.log("❌ ERROR ACTUALIZANDO PEDIDO:", err);
+    res.status(500).json({ error: err.message });
+
   }
+
 });
 /* =====================
    SERVER
