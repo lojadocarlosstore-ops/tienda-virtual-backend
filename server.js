@@ -254,7 +254,7 @@ app.post("/login", async (req, res) => {
 /* =====================
    PRODUCTOS
 ===================== */
-app.get("/productos", async (req, res) => {
+app.get("/admin/pedidos", authMiddleware, async (req, res) => {
   try {
     const data = await Producto.find({}).lean();
     console.log("PRODUCTOS OK:", data);
