@@ -266,19 +266,25 @@ app.post("/login", async (req, res) => {
 /* =====================
    PRODUCTOS
 ===================== */
-app.get("/admin/pedidos", authMiddleware, async (req, res) => {
+app.get("/productos", async (req, res) => {
+
   try {
 
-    const pedidos = await Pedido.find().sort({ _id: -1 });
+    const productos = await Producto.find({}).lean();
 
-    res.json(pedidos);
+    console.log("🔥 PRODUCTOS OK:", productos);
+
+    res.json(productos);
 
   } catch (err) {
-    console.log("ERROR PEDIDOS:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
 
+    console.log("❌ ERROR PRODUCTOS:", err);
+
+    res.status(500).json({ error: err.message });
+
+  }
+
+});
 
 app.post("/pedidos", authMiddleware, async (req, res) => {
 
@@ -394,8 +400,7 @@ try {
   }
 });
 
-app.put("/admin/pedidos/:id/estado", async (req, res) => {
-
+app.put("/admin/pedidos/:id/estado", authMiddleware, async (req, res) => {
   try {
 
     console.log("🔥 ENTRÓ AL ENDPOINT");
