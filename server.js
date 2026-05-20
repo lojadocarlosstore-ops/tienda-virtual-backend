@@ -12,7 +12,7 @@ const jwt = require("jsonwebtoken");
 const JWT_SECRET = "secreto_tienda";
 // 👇 MODELOS
 const User = require("./models/User");
-const Pedido = require("./models/Pedido");
+const Pedido = mongoose.model("Pedido", require("./models/Pedido").schema, "pedidos");
 
 const app = express();
 

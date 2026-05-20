@@ -2,28 +2,11 @@ const mongoose = require("mongoose");
 
 const PedidoSchema = new mongoose.Schema({
   usuario: String,
-
-  productos: [
-    {
-      nombre: String,
-      precio: Number,
-      cantidad: Number
-    }
-  ],
-
+  productos: Array,
   total: Number,
   direccion: String,
-  estado: {
-    type: String,
-    default: "pendiente"
-  },
-  fecha: {
-    type: Date,
-    default: Date.now
-  }
-},
-  {
-    collection: "pedidos" // 🔥 FORZAMOS MISMA COLECCIÓN
-  });
+  estado: { type: String, default: "pendiente" },
+  fecha: { type: Date, default: Date.now }
+}, { collection: "pedidos" });
 
 module.exports = mongoose.model("Pedido", PedidoSchema);
