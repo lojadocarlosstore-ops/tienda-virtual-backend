@@ -289,26 +289,57 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
       .join("<br>");
 
     const html = `
-      <div style="font-family: Arial;">
-        <h2>🛒 Nuevo Pedido</h2>
+<div style="
+  font-family: Arial, sans-serif;
+  background: #f3f4f6;
+  padding: 30px;
+">
 
-        <p><b>👤 Nombre:</b> ${usuario?.nombre || "No registrado"}</p>
+  <div style="
+    max-width: 500px;
+    margin: auto;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  ">
 
-        <p><b>📞 Teléfono:</b> ${telefono || "No registrado"}</p>
+    <h2 style="
+      text-align: center;
+      color: #e11d48;
+      margin-bottom: 20px;
+    ">
+      🛒 Nuevo Pedido
+    </h2>
 
-        <hr>
+    <p><b>👤 Nombre:</b> ${usuario?.nombre || "No registrado"}</p>
 
-        <p><b>Productos:</b></p>
-        <p>${productosHTML}</p>
+    <p><b>📞 Teléfono:</b> ${telefono || "No registrado"}</p>
 
-        <hr>
+    <hr style="margin: 15px 0;">
 
-        <p><b>📍 Dirección:</b> ${direccion}</p>
-        <p><b>📅 Fecha:</b> ${fechaLocal}</p>
-        <p><b>💰 TOTAL:</b> $${total}</p>
-      </div>
-    `;
+    <p style="color:#1f2937;"><b>Productos:</b></p>
 
+    <div style="margin-left:10px; margin-bottom:10px;">
+      ${productosHTML}
+    </div>
+
+    <hr style="margin: 15px 0;">
+
+    <p><b>📍 Dirección:</b> ${direccion}</p>
+    <p><b>📅 Fecha:</b> ${fechaLocal}</p>
+
+    <h3 style="
+      text-align:center;
+      color:#16a34a;
+      margin-top:20px;
+    ">
+      💰 TOTAL: $${total}
+    </h3>
+
+  </div>
+</div>
+`;
     setImmediate(async () => {
       try {
         await resend.emails.send({
