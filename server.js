@@ -305,12 +305,15 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
   ">
 
     <h2 style="
-      text-align: center;
-      color: #e11d48;
-      margin-bottom: 20px;
-    ">
-      🛒 Nuevo Pedido
-    </h2>
+  text-align: center;
+  background: #e11d48;
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+">
+  🛒 Nuevo Pedido
+</h2>
 
     <p><b>👤 Nombre:</b> ${usuario?.nombre || "No registrado"}</p>
 
