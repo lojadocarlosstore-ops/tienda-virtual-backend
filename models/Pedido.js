@@ -1,11 +1,7 @@
 const mongoose = require("mongoose");
 
 const PedidoSchema = new mongoose.Schema({
-
-  usuario: {
-    type: String,
-    default: null
-  },
+  usuario: String,
 
   productos: [
     {
@@ -15,26 +11,19 @@ const PedidoSchema = new mongoose.Schema({
     }
   ],
 
-  total: {
-    type: Number,
-    default: 0
-  },
-
-  direccion: {
-    type: String,
-    default: "Sin dirección"
-  },
-
+  total: Number,
+  direccion: String,
   estado: {
     type: String,
     default: "pendiente"
   },
-
   fecha: {
     type: Date,
     default: Date.now
   }
-
-});
+},
+  {
+    collection: "pedidos" // 🔥 FORZAMOS MISMA COLECCIÓN
+  });
 
 module.exports = mongoose.model("Pedido", PedidoSchema);
