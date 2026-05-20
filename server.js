@@ -284,7 +284,6 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
       timeZone: "America/Bogota"
     });
 
-    // 🔥 FORMATEAR PRODUCTOS BONITO
     const productosHTML = productos
       .map(p => `🛒 ${p.nombre} x${p.cantidad || 1} - $${p.precio * (p.cantidad || 1)}`)
       .join("<br>");
@@ -334,15 +333,18 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
 app.put("/admin/pedidos/:id/estado", async (req, res) => {
 
   try {
-  
-    console.log("BODY:", req.body);
-    console.log("ID:", req.params.id);
 
+    console.log("🔥 ENTRÓ AL ENDPOINT");
+    console.log("🔥 BODY:", req.body);
+    console.log("🔥 ID:", req.params.id);
 
-    const { id } = req.params;
     const { estado } = req.body;
 
-    const pedido = await Pedido.findById(id);
+    if (!estado) {
+      return res.status(400).json({ message: "Estado vacío" });
+    }
+
+    const pedido = await Pedido.findOne({ _id: req.params.id });
 
     if (!pedido) {
       return res.status(404).json({ message: "Pedido no encontrado" });
@@ -350,51 +352,19 @@ app.put("/admin/pedidos/:id/estado", async (req, res) => {
 
     pedido.estado = estado;
 
-    await pedido.save();
+    const actualizado = await pedido.save();
 
-    res.json({
+    console.log("🔥 NUEVO ESTADO GUARDADO:", actualizado.estado);
+
+    return res.json({
       ok: true,
       message: "Estado actualizado",
-      pedido
+      pedido: actualizado
     });
 
   } catch (err) {
     console.log(err);
     res.status(500).json({ message: "Error servidor" });
-  }
-});
-app.get("/admin/pedidos", async (req, res) => {
-
-  try {
-
-    console.log("HEADERS:", req.headers.authorization);
-
-    const header = req.headers.authorization;
-
-    if (!header) {
-      return res.status(401).json({ error: "No autorizado (sin header)" });
-    }
-
-    let token = header;
-
-    // 🔥 soporta "Bearer token" o solo token
-    if (header.startsWith("Bearer ")) {
-      token = header.replace("Bearer ", "");
-    }
-
-    console.log("TOKEN FINAL:", token);
-
-    if (token !== "admin-token") {
-      return res.status(401).json({ error: "No autorizado (token incorrecto)" });
-    }
-
-    const pedidos = await Pedido.find().sort({ _id: -1 });
-
-    return res.json(pedidos);
-
-  } catch (err) {
-    console.log("ERROR ADMIN PEDIDOS:", err);
-    return res.status(500).json({ error: "Error servidor" });
   }
 });
 /* =====================
@@ -406,3 +376,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Servidor corriendo en puerto", PORT);
 });
+window.cambiarEstado = cambiarEstado;
