@@ -367,6 +367,23 @@ app.put("/admin/pedidos/:id/estado", async (req, res) => {
     res.status(500).json({ message: "Error servidor" });
   }
 });
+
+app.get("/admin/pedidos", async (req, res) => {
+
+  try {
+
+    const pedidos = await Pedido.find().sort({ fecha: -1 });
+
+    res.json(pedidos);
+
+  } catch (err) {
+
+    console.log("ERROR PEDIDOS ADMIN:", err);
+    res.status(500).json({ message: "Error cargando pedidos" });
+
+  }
+
+});
 /* =====================
    SERVER
 ===================== */
