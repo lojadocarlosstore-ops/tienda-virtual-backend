@@ -265,28 +265,25 @@ app.get("/productos", async (req, res) => {
   }
 });
 
+
 app.post("/pedidos", authMiddleware, async (req, res) => {
 
   try {
 
+    console.log("🔥 USER:", req.user);
+    console.log("🔥 BODY:", req.body);
+
     const { productos, total, telefono, usuario } = req.body;
-    let direccion = req.body.direccion;
 
-    const direccionInput = document.getElementById("direccion")?.value;
+    let direccion = req.body.direccion || "Sin dirección";
 
-const pedido = {
-  productos: productosPedido,
-  total: totalPedido,
-  direccion: (direccionInput && direccionInput.trim())
-    ? `${direccionInput.trim()}, Marsella Risaralda`
-    : "Sin dirección",
-  fecha: new Date().toISOString(),
-  usuario: user ? {
-    nombre: user.nombre,
-    email: user.email
-  } : null,
-  telefono
-};
+    const pedido = new Pedido({
+      usuario: req.user?.id || null,
+      productos,
+      total,
+      direccion,
+      estado: "pendiente"
+    });
 
     await pedido.save();
 
@@ -354,18 +351,7 @@ const pedido = {
 </div>
 `;
 
-    setImmediate(async () => {
-      try {
-        await resend.emails.send({
-          from: "onboarding@resend.dev",
-          to: "lojadocarlos.store@gmail.com",
-          subject: "🛒 Nuevo pedido",
-          html
-        });
-      } catch (error) {
-        console.log("EMAIL ERROR:", error.message);
-      }
-    });
+    
 
     res.json(pedido);
 
