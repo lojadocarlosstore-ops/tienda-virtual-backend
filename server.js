@@ -272,18 +272,15 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
     const { productos, total, telefono, usuario } = req.body;
     let direccion = req.body.direccion;
 
-    // 🔥 FIX REAL: evitar undefined o vacío
-    if (!direccion || direccion.trim() === "") {
-      direccion = "Sin dirección";
-    }
+    const { productos, total, direccion, telefono, usuario } = req.body;
 
-    const pedido = new Pedido({
-      usuario: req.user.id,
-      productos,
-      total,
-      direccion,
-      estado: "pendiente"
-    });
+const pedido = new Pedido({
+  usuario: req.user.id,
+  productos,
+  total,
+  direccion: direccion || "Sin dirección",
+  estado: "pendiente"
+});
 
     await pedido.save();
 
