@@ -93,11 +93,6 @@ app.post("/admin/login", (req, res) => {
   }
 
 });
-/* =====================
-   JWT SECRET
-===================== */
-
-const JWT_SECRET = "secreto_tienda";
 
 /* =====================
    MONGODB
@@ -273,11 +268,13 @@ app.post("/login", async (req, res) => {
 ===================== */
 app.get("/admin/pedidos", authMiddleware, async (req, res) => {
   try {
-    const data = await Producto.find({}).lean();
-    console.log("PRODUCTOS OK:", data);
-    res.json(data);
+
+    const pedidos = await Pedido.find().sort({ _id: -1 });
+
+    res.json(pedidos);
+
   } catch (err) {
-    console.log("ERROR REAL:", err);
+    console.log("ERROR PEDIDOS:", err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -308,9 +305,9 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
       timeZone: "America/Bogota"
     });
 
-    const productosHTML = productos
-      .map(p => `🛒 ${p.nombre} x${p.cantidad || 1} - $${p.precio * (p.cantidad || 1)}`)
-      .join("<br>");
+    const productosHTML = (productos || [])
+  .map(p => `🛒 ${p.nombre} x${p.cantidad || 1} - $${p.precio * (p.cantidad || 1)}`)
+  .join("<br>");
 
     const html = `
 <div style="
