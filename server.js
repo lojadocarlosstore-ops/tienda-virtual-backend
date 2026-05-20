@@ -271,12 +271,12 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
     const { productos, total, direccion, telefono, usuario } = req.body;
 
     const pedido = new Pedido({
-      usuario: req.user.id,
-      productos,
-      total,
-      direccion,
-      estado: "pendiente"
-    });
+  usuario: req.user.id,
+  productos,
+  total,
+  direccion: direccion || "Sin dirección",
+  estado: "pendiente"
+});
 
     await pedido.save();
 
