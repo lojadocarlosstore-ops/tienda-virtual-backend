@@ -267,8 +267,10 @@ app.post("/login", async (req, res) => {
 /* =====================
    PRODUCTOS
 ===================== */
-console.log("🔥 RUTA /admin/pedidos ACTIVA");
+
 app.get("/productos", async (req, res) => {
+
+  console.log("🔥 RUTA /productos ACTIVA");
 
   try {
 
@@ -288,6 +290,31 @@ app.get("/productos", async (req, res) => {
 
 });
 
+/* =====================
+   PEDIDOS (ADMIN)
+===================== */
+
+app.get("/admin/pedidos", authMiddleware, async (req, res) => {
+
+  console.log("🔥 RUTA /admin/pedidos ACTIVA");
+
+  try {
+
+    const pedidos = await Pedido.find({}).lean();
+
+    console.log("🔥 PEDIDOS OK:", pedidos);
+
+    res.json(pedidos);
+
+  } catch (err) {
+
+    console.log("❌ ERROR PEDIDOS:", err);
+
+    res.status(500).json({ error: err.message });
+
+  }
+
+});
 app.post("/pedidos", authMiddleware, async (req, res) => {
 
   try {
