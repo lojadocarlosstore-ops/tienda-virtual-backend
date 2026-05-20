@@ -336,6 +336,9 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
 
     await pedido.save();
 
+    // 🔥 DEBUG IMPORTANTE (AGREGADO)
+    console.log("🔥 PEDIDO GUARDADO EN MONGO:", pedido);
+
     const fechaLocal = new Date().toLocaleString("es-CO", {
       timeZone: "America/Bogota"
     });
