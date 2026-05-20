@@ -52,7 +52,6 @@ app.use("/img", express.static(path.join(__dirname, "public", "img")));
 
 const ADMIN_USER = "admin";
 const ADMIN_PASS = "1234";
-const ADMIN_TOKEN = "admin-token";
 
 console.log("ADMIN ROUTE CARGADA");
 app.post("/admin/login", (req, res) => {
