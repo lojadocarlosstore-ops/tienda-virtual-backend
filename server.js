@@ -12,7 +12,7 @@ const jwt = require("jsonwebtoken");
 const JWT_SECRET = "secreto_tienda";
 // 👇 MODELOS
 const User = require("./models/User");
-const Pedido = require("./models/Pedido"); 
+const Pedido = require("./models/Pedido");
 
 const app = express();
 
@@ -213,10 +213,10 @@ app.post("/register", async (req, res) => {
     res.json({ message: "Usuario registrado correctamente" });
 
   } catch (error) {
-  console.log("❌ ERROR REGISTER COMPLETO:");
-  console.log(error);
-  console.log(error?.message);
-  res.status(500).json({ message: "Error en registro" });
+    console.log("❌ ERROR REGISTER COMPLETO:");
+    console.log(error);
+    console.log(error?.message);
+    res.status(500).json({ message: "Error en registro" });
   }
 
 });
@@ -341,8 +341,8 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
     });
 
     const productosHTML = (productos || [])
-  .map(p => `🛒 ${p.nombre} x${p.cantidad || 1} - $${p.precio * (p.cantidad || 1)}`)
-  .join("<br>");
+      .map(p => `🛒 ${p.nombre} x${p.cantidad || 1} - $${p.precio * (p.cantidad || 1)}`)
+      .join("<br>");
 
     const html = `
 <div style="
@@ -400,26 +400,26 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
 </div>
 `;
 
-try {
+    try {
 
-  console.log("📧 ENVIANDO EMAIL...");
+      console.log("📧 ENVIANDO EMAIL...");
 
-  const response = await resend.emails.send({
-    from: "onboarding@resend.dev",
-    to: "lojadocarlos.store@gmail.com",
-    subject: "Nuevo pedido Loja do Carlos",
-    html: html
-  });
+      const response = await resend.emails.send({
+        from: "onboarding@resend.dev",
+        to: "lojadocarlos.store@gmail.com",
+        subject: "Nuevo pedido Loja do Carlos",
+        html: html
+      });
 
-  console.log("✅ RESPUESTA RESEND:");
-  console.log(response);
+      console.log("✅ RESPUESTA RESEND:");
+      console.log(response);
 
-} catch (emailError) {
+    } catch (emailError) {
 
-  console.log("❌ ERROR RESEND:");
-  console.log(emailError);
+      console.log("❌ ERROR RESEND:");
+      console.log(emailError);
 
-}
+    }
 
     res.json(pedido);
 
@@ -429,43 +429,38 @@ try {
   }
 });
 
-app.put("/admin/pedidos/:id/estado", authMiddleware, async (req, res) => {
-  try {
+console.log("🔥 RUTA PUT PEDIDOS CARGADA");
 
-    console.log("🔥 ENTRÓ AL ENDPOINT");
-    console.log("🔥 BODY:", req.body);
-    console.log("🔥 ID:", req.params.id);
+app.put("/admin/pedidos/:id", async (req, res) => {
+
+  try {
 
     const { estado } = req.body;
 
-    if (!estado) {
-      return res.status(400).json({ message: "Estado vacío" });
+    const pedidoActualizado = await Pedido.findByIdAndUpdate(
+      req.params.id,
+      { estado: estado },
+      { new: true }
+    );
+
+    if (!pedidoActualizado) {
+      return res.status(404).json({
+        message: "Pedido no encontrado"
+      });
     }
 
-    const pedido = await Pedido.findById(req.params.id); // 🔥 AQUÍ EL FIX
-
-    if (!pedido) {
-      return res.status(404).json({ message: "Pedido no encontrado" });
-    }
-
-    const { estado: nuevoEstado } = req.body;
-
-    pedido.estado = nuevoEstado;
-
-    const actualizado = await pedido.save();
-
-    console.log("🔥 NUEVO ESTADO GUARDADO:", actualizado.estado);
-
-    return res.json({
-      ok: true,
-      message: "Estado actualizado",
-      pedido: actualizado
-    });
+    res.json(pedidoActualizado);
 
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "Error servidor" });
+
+    console.log("❌ ERROR ACTUALIZANDO PEDIDO:", err);
+
+    res.status(500).json({
+      error: err.message
+    });
+
   }
+
 });
 /* =====================
    SERVER
