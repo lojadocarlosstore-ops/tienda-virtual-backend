@@ -194,6 +194,11 @@ app.post("/register", async (req, res) => {
 
     const { nombre, email, password } = req.body;
 
+    // 🔴 VALIDACIÓN IMPORTANTE (AQUÍ ARRIBA, ANTES DE TODO)
+    if (!nombre || !email || !password) {
+      return res.status(400).json({ message: "Todos los campos son obligatorios" });
+    }
+
     const existe = await User.findOne({ email });
 
     if (existe) {
@@ -231,16 +236,22 @@ app.post("/login", async (req, res) => {
 
     const { email, password } = req.body;
 
+    // 🔴 VALIDACIÓN BÁSICA
+    if (!email || !password) {
+      return res.status(400).json({ message: "Todos los campos son obligatorios" });
+    }
+
     const user = await User.findOne({ email });
 
+    // 🔴 IMPORTANTE: mismo mensaje para evitar filtración de usuarios
     if (!user) {
-      return res.status(400).json({ message: "Usuario no encontrado" });
+      return res.status(400).json({ message: "Usuario o contraseña incorrectos" });
     }
 
     const ok = await bcrypt.compare(password, user.password);
 
     if (!ok) {
-      return res.status(400).json({ message: "Contraseña incorrecta" });
+      return res.status(400).json({ message: "Usuario o contraseña incorrectos" });
     }
 
     const token = jwt.sign(
@@ -259,11 +270,12 @@ app.post("/login", async (req, res) => {
     });
 
   } catch (error) {
+    console.log("❌ ERROR LOGIN:");
+    console.log(error);
     res.status(500).json({ message: "Error en login" });
   }
 
 });
-
 /* =====================
    PRODUCTOS
 ===================== */
