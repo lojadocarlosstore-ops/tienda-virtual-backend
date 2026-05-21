@@ -326,24 +326,17 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
 
     let direccion = req.body.direccion || "Sin dirección";
 
-    // 🔥 FECHA Y DÍA (NUEVO PARA DASHBOARD POR DÍA)
-    const fechaActual = new Date();
-    const dia = fechaActual.toISOString().split("T")[0];
-
     const pedido = new Pedido({
       usuario: req.user?.id || null,
       productos,
       total,
       direccion,
-      estado: "pendiente",
-
-      // 🔥 NUEVO
-      fecha: fechaActual,
-      dia: dia
+      estado: "pendiente"
     });
 
     await pedido.save();
 
+    // 🔥 DEBUG IMPORTANTE (AGREGADO)
     console.log("🔥 PEDIDO GUARDADO EN MONGO:", pedido);
 
     const fechaLocal = new Date().toLocaleString("es-CO", {
@@ -425,8 +418,10 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
       console.log(response);
 
     } catch (emailError) {
+
       console.log("❌ ERROR RESEND:");
       console.log(emailError);
+
     }
 
     res.json(pedido);
@@ -470,86 +465,6 @@ app.put("/admin/pedidos/:id", async (req, res) => {
   }
 
 });
-
-app.get("/admin/dashboard-diario", authMiddleware, async (req, res) => {
-
-  try {
-
-    const hoy = new Date().toISOString().split("T")[0];
-
-    const pedidosHoy = await Pedido.find({ dia: hoy }).lean();
-
-    let ventas = 0;
-    let pendientes = 0;
-
-    pedidosHoy.forEach(p => {
-
-      const estado = (p.estado || "").toLowerCase().trim();
-
-      if (estado === "entregado") {
-        ventas += Number(p.total || 0);
-      }
-
-      if (estado === "pendiente") {
-        pendientes++;
-      }
-    });
-
-    res.json({
-      pedidos: pedidosHoy.length,
-      ventas,
-      pendientes,
-      data: pedidosHoy
-    });
-
-  } catch (err) {
-    console.log("❌ ERROR DASHBOARD:", err);
-    res.status(500).json({ error: "Error dashboard diario" });
-  }
-
-});
-
-// =====================
-// DASHBOARD DIARIO ADMIN
-// =====================
-
-app.get("/admin/dashboard-diario", authMiddleware, async (req, res) => {
-
-  try {
-
-    const hoy = new Date().toISOString().split("T")[0];
-
-    const pedidosHoy = await Pedido.find({ dia: hoy }).lean();
-
-    let ventas = 0;
-    let pendientes = 0;
-
-    pedidosHoy.forEach(p => {
-
-      const estado = (p.estado || "").toLowerCase().trim();
-
-      if (estado === "entregado") {
-        ventas += Number(p.total || 0);
-      }
-
-      if (estado === "pendiente") {
-        pendientes++;
-      }
-    });
-
-    res.json({
-      pedidos: pedidosHoy.length,
-      ventas,
-      pendientes
-    });
-
-  } catch (err) {
-    console.log("❌ ERROR DASHBOARD:", err);
-    res.status(500).json({ error: "Error dashboard diario" });
-  }
-
-});
-
 /* =====================
    SERVER
 ===================== */
