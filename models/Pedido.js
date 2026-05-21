@@ -12,7 +12,6 @@ const PedidoSchema = new mongoose.Schema({
   ],
 
   total: Number,
-
   direccion: String,
 
   estado: {
@@ -23,7 +22,9 @@ const PedidoSchema = new mongoose.Schema({
   fecha: {
     type: Date,
     default: Date.now
-  }
+  },
+
+  dia: String   // 🔥 NUEVO CAMPO
 }, { versionKey: false });
 
 module.exports = mongoose.model("Pedido", PedidoSchema);
