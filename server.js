@@ -1,5 +1,5 @@
 console.log("SERVER VERSION NUEVA CON ADMIN LOGIN");
-console.log("🔥 BACKEND NUEVO CORRIENDO");
+console.log("BACKEND NUEVO CORRIENDO");
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -10,12 +10,11 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const JWT_SECRET = "secreto_tienda";
-// 👇 MODELOS
+//  MODELOS
 const User = require("./models/User");
 const Pedido = mongoose.model("Pedido", require("./models/Pedido").schema, "pedidos");
 
 const app = express();
-
 
 // =====================
 // MODELO PRODUCTO
@@ -114,12 +113,12 @@ const { Resend } = require("resend");
 const resend = new Resend("re_Qc8VBNSb_NPFvmMVnPrZhzzMsKf48gFHv");
 
 /* =====================
-   ADMIN LOGIN
+   LOGIN USER
 ===================== */
 
 app.post("/login", async (req, res) => {
 
-  console.log("BODY LOGIN:", req.body); // 👈 AQUÍ
+  console.log("BODY LOGIN:", req.body); // 
 
   try {
 
@@ -194,7 +193,7 @@ app.post("/register", async (req, res) => {
 
     const { nombre, email, password } = req.body;
 
-    // 🔴 VALIDACIÓN IMPORTANTE (AQUÍ ARRIBA, ANTES DE TODO)
+    // VALIDACIÓN IMPORTANTE 
     if (!nombre || !email || !password) {
       return res.status(400).json({ message: "Todos los campos son obligatorios" });
     }
@@ -282,13 +281,13 @@ app.post("/login", async (req, res) => {
 
 app.get("/productos", async (req, res) => {
 
-  console.log("🔥 RUTA /productos ACTIVA");
+  console.log("RUTA /productos ACTIVA");
 
   try {
 
     const productos = await Producto.find({}).lean();
 
-    console.log("🔥 PRODUCTOS OK:", productos);
+    console.log("PRODUCTOS OK:", productos);
 
     res.json(productos);
 
@@ -308,13 +307,13 @@ app.get("/productos", async (req, res) => {
 
 app.get("/admin/pedidos", authMiddleware, async (req, res) => {
 
-  console.log("🔥 RUTA /admin/pedidos ACTIVA");
+  console.log("RUTA /admin/pedidos ACTIVA");
 
   try {
 
     const pedidos = await Pedido.find({}).lean();
 
-    console.log("🔥 PEDIDOS OK:", pedidos);
+    console.log("PEDIDOS OK:", pedidos);
 
     res.json(pedidos);
 
@@ -444,7 +443,7 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
   }
 });
 
-console.log("🔥 RUTA PUT PEDIDOS CARGADA");
+console.log("RUTA PUT PEDIDOS CARGADA");
 
 app.put("/admin/pedidos/:id", async (req, res) => {
 
@@ -476,6 +475,51 @@ app.put("/admin/pedidos/:id", async (req, res) => {
 
   }
 
+});
+
+app.delete("/usuarios/:id", async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    res.json({ message: "Usuario eliminado correctamente" });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/productos/:id", async (req, res) => {
+  try {
+    const producto = await Producto.findByIdAndDelete(req.params.id);
+
+    if (!producto) {
+      return res.status(404).json({ message: "Producto no encontrado" });
+    }
+
+    res.json({ message: "Producto eliminado correctamente" });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/admin/pedidos/:id", async (req, res) => {
+  try {
+    const pedido = await Pedido.findByIdAndDelete(req.params.id);
+
+    if (!pedido) {
+      return res.status(404).json({ message: "Pedido no encontrado" });
+    }
+
+    res.json({ message: "Pedido eliminado correctamente" });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 /* =====================
    SERVER
