@@ -9,7 +9,12 @@ const path = require("path");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = "secreto_tienda";
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  console.log("❌ Falta la variable de entorno JWT_SECRET. El servidor no puede arrancar sin ella.");
+  process.exit(1);
+}
 //  MODELOS
 const User = require("./models/User");
 const Pedido = mongoose.model("Pedido", require("./models/Pedido").schema, "pedidos");
@@ -50,8 +55,13 @@ app.use("/img", express.static(path.join(__dirname, "public", "img")));
    ADMIN
 ===================== */
 
-const ADMIN_USER = "admin";
-const ADMIN_PASS = "1234";
+const ADMIN_USER = process.env.ADMIN_USER;
+const ADMIN_PASS = process.env.ADMIN_PASS;
+
+if (!ADMIN_USER || !ADMIN_PASS) {
+  console.log("❌ Faltan las variables de entorno ADMIN_USER / ADMIN_PASS. El servidor no puede arrancar sin ellas.");
+  process.exit(1);
+}
 
 console.log("ADMIN ROUTE CARGADA");
 
@@ -61,7 +71,7 @@ app.post("/admin/login", (req, res) => {
 
     const { user, pass } = req.body;
 
-    if (user === "admin" && pass === "1234") {
+    if (user === ADMIN_USER && pass === ADMIN_PASS) {
 
       const token = jwt.sign(
         { role: "admin" },
@@ -110,7 +120,12 @@ mongoose.connect(process.env.MONGO_URL)
 
 const { Resend } = require("resend");
 
-const resend = new Resend("re_Qc8VBNSb_NPFvmMVnPrZhzzMsKf48gFHv");
+if (!process.env.RESEND_API_KEY) {
+  console.log("❌ Falta la variable de entorno RESEND_API_KEY. El servidor no puede arrancar sin ella.");
+  process.exit(1);
+}
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 /* =====================
    LOGIN USER
@@ -168,11 +183,6 @@ function authMiddleware(req, res, next) {
   if (!header) return res.status(401).json({ error: "Sin token" });
 
   const token = header.split(" ")[1];
-
-  if (token === "admin-token") {
-    req.user = { role: "admin" };
-    return next();
-  }
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
