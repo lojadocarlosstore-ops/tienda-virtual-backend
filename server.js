@@ -12,7 +12,7 @@ const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET;
 
 if (!JWT_SECRET) {
-  console.log("❌ Falta la variable de entorno JWT_SECRET. El servidor no puede arrancar sin ella.");
+  console.log("Falta la variable de entorno JWT_SECRET. El servidor no puede arrancar sin ella.");
   process.exit(1);
 }
 //  MODELOS
@@ -203,7 +203,6 @@ app.post("/register", async (req, res) => {
 
     const { nombre, email, password } = req.body;
 
-    // VALIDACIÓN IMPORTANTE 
     if (!nombre || !email || !password) {
       return res.status(400).json({ message: "Todos los campos son obligatorios" });
     }
@@ -245,14 +244,12 @@ app.post("/login", async (req, res) => {
 
     const { email, password } = req.body;
 
-    // 🔴 VALIDACIÓN BÁSICA
     if (!email || !password) {
       return res.status(400).json({ message: "Todos los campos son obligatorios" });
     }
 
     const user = await User.findOne({ email });
 
-    // 🔴 IMPORTANTE: mismo mensaje para evitar filtración de usuarios
     if (!user) {
       return res.status(400).json({ message: "Usuario o contraseña incorrectos" });
     }
@@ -340,8 +337,8 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
 
   try {
 
-    console.log("🔥 USER:", req.user);
-    console.log("🔥 BODY:", req.body);
+    console.log("USER:", req.user);
+    console.log(" BODY:", req.body);
 
     const { productos, total, telefono, usuario } = req.body;
 
@@ -357,7 +354,6 @@ app.post("/pedidos", authMiddleware, async (req, res) => {
 
     await pedido.save();
 
-    // 🔥 DEBUG IMPORTANTE (AGREGADO)
     console.log("🔥 PEDIDO GUARDADO EN MONGO:", pedido);
 
     const fechaLocal = new Date().toLocaleString("es-CO", {
